@@ -7,6 +7,7 @@ public class Ball : MonoBehaviour
 {
     private Rigidbody2D rb;
     public float speed = 10f;
+    public Transform asd;
 
     private void Awake()
     {
@@ -21,7 +22,8 @@ public class Ball : MonoBehaviour
     public void ResetBall()
     {
         rb.velocity = Vector2.zero;
-        transform.position = Vector2.zero;
+        transform.position = asd.transform.position;
+
 
         CancelInvoke();
         Invoke(nameof(SetRandomTrajectory), 1f);
