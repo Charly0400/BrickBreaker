@@ -25,19 +25,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private const int NUM_LEVELS = 2;
+    public GameObject[] levelPrefabs;
+    private GameObject currentLevel;
 
     private Ball ball;
     private Plataforma paddle;
     private Bricks[] bricks;
 
-    private int level = 1;
     private int score = 0;
     private int lives = 3;
-
-    public int Level => level;
-    public int Score => score;
-    public int Lives => lives;
 
     private void Awake()
     {
@@ -49,35 +45,36 @@ public class GameManager : MonoBehaviour
 
         m_Instance = this;
         DontDestroyOnLoad(gameObject);
-        FindSceneReferences();
-        SceneManager.sceneLoaded += OnLevelLoaded;
     }
 
-    private void FindSceneReferences()
+    private void Start()
     {
-        ball = FindObjectOfType<Ball>();
-        paddle = FindObjectOfType<Plataforma>();
-        bricks = FindObjectsOfType<Bricks>();
+        NewGame();
     }
 
-    private void LoadLevel(int level)
+    public void LoadLevel(int levelIndex)
     {
-        this.level = level;
-
-        if (level > NUM_LEVELS)
+        if (currentLevel != null)
         {
-            // Start over again at level 1 once you have beaten all the levels
-            // You can also load a "Win" scene instead
-            LoadLevel(1);
-            return;
+            Destroy(currentLevel);
         }
 
-        SceneManager.LoadScene("Level" + level);
+        if (levelIndex >= 0 && levelIndex < levelPrefabs.Length)
+        {
+            currentLevel = Instantiate(levelPrefabs[levelIndex]);
+            FindLevelReferences(currentLevel);
+        }
+        else
+        {
+            Debug.LogWarning("Level index out of range.");
+        }
     }
 
-    private void OnLevelLoaded(Scene scene, LoadSceneMode mode)
+    private void FindLevelReferences(GameObject level)
     {
-        FindSceneReferences();
+        ball = level.GetComponentInChildren<Ball>();
+        paddle = level.GetComponentInChildren<Plataforma>();
+        bricks = level.GetComponentsInChildren<Bricks>();
     }
 
     public void OnBallMiss()
@@ -102,8 +99,8 @@ public class GameManager : MonoBehaviour
 
     private void GameOver()
     {
-        // Start a new game immediately
-        // You can also load a "GameOver" scene instead
+        // Implement your game over logic here
+        // For example, you can reset the game or load a game over scene
         NewGame();
     }
 
@@ -112,7 +109,7 @@ public class GameManager : MonoBehaviour
         score = 0;
         lives = 3;
 
-        LoadLevel(1);
+        LoadNextLevel();
     }
 
     public void OnBrickHit(Bricks brick)
@@ -121,7 +118,7 @@ public class GameManager : MonoBehaviour
 
         if (Cleared())
         {
-            LoadLevel(level + 1);
+            LoadNextLevel();
         }
     }
 
@@ -136,5 +133,24 @@ public class GameManager : MonoBehaviour
         }
 
         return true;
+    }
+
+    private void LoadNextLevel()
+    {
+        // Choose a random index to select the next level
+        int randomIndex = Random.Range(0, levelPrefabs.Length);
+        LoadLevel(randomIndex);
+
+        // Reiniciar la pelota después de cargar el próximo nivel
+        ResetBall();
+    }
+
+    private void ResetBall()
+    {
+        if (ball != null)
+        {
+            ball.ResetBall();
+        }
+
     }
 }
